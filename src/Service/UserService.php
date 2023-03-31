@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\User;
+use App\Exception\LoginFailedException;
 use App\Exception\ValidatorException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
@@ -14,23 +15,14 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class UserService implements CrudInterface
 {
     public function __construct(private EntityManagerInterface $em,
-                                private UserPasswordHasherInterface $passwordHasher,
-                                private ValidatorInterface $validator)
+                                private UserPasswordHasherInterface $passwordHasher)
     {
 
     }
 
-    /**
-     * @throws ExceptionInterface
-     * @throws ValidatorException
-     */
     public function add(User $user): void
     {
-        $hashedPassword = $this->passwordHasher->hashPassword(
-            $user,
-            $user->getPassword()
-        );
-        $user->setPassword($hashedPassword);
+        $user = $this->setHashedPassword($user, $user->getPassword());
         $user->setIsActive(false);
         $user->setIsDeleted(false);
 
@@ -55,14 +47,87 @@ class UserService implements CrudInterface
         $this->em->persist($user);
         $this->em->flush();
     }
+
+    /**
+     * @throws UserNotFoundException
+     * @throws LoginFailedException
+     */
     public function update(int $id, array $data)
     {
+        $user = $this->em->getRepository(User::class)->findOneBy(["id" => $id]);
 
+        if(!$this->passwordHasher->isPasswordValid($user, $data["password"]))
+            throw new LoginFailedException();
+
+        if(!$user)
+            throw new UserNotFoundException($id);
+
+        if(array_key_exists("email", $data))
+            $this->updateEmail($user, $data["email"]);
+        if(array_key_exists("login", $data))
+            $this->updateLogin($user, $data["login"]);
+        if(array_key_exists("new_password", $data))
+            $this->updatePassword($user, $data["new_password"]);
     }
-    public function get(int $id )
+
+    /**
+     * @throws UserNotFoundException
+     */
+    public function get(int $id)
     {
         $user = $this->em->getRepository(User::class)
             ->findOneBy(["id" => $id]);
+
+        if(!$user)
+            throw new UserNotFoundException($id);
+
+        return $user;
+    }
+
+    public function getAll(): array
+    {
+        $allUsers = [];
+        /** @var User[] $users */
+        $users = $this->em->getRepository(User::class)->findBy(["isDeleted" => "false"]);
+
+        foreach($users as $user)
+        {
+            $allUsers[] = [
+                "login" => $user->getLogin(),
+                "email" => $user->getEmail(),
+            ];
+        }
+        return $allUsers;
+    }
+    public function updateEmail($user, $email)
+    {
+        $user->setEmail($email);
+
+        $this->em->persist($user);
+        $this->em->flush();;
+    }
+    public function updateLogin($user, $login)
+    {
+        $user->setLogin($login);
+
+        $this->em->persist($user);
+        $this->em->flush();;
+    }
+    public function updatePassword($user, $newPassword)
+    {
+        $user = $this->setHashedPassword($user, $newPassword);
+
+        $this->em->persist($user);
+        $this->em->flush();
+
+    }
+    public function setHashedPassword($user, $plainTextPassword)
+    {
+        $hashedPassword = $this->passwordHasher->hashPassword(
+            $user,
+            $plainTextPassword
+        );
+        $user->setPassword($hashedPassword);
         return $user;
     }
 
