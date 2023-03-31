@@ -2,13 +2,13 @@
 
 namespace App\Controller;
 
+use App\Exception\LoginFailedException;
 use App\Exception\UserAlreadyActiveException;
 use App\Exception\UserNotFoundException;
 use App\Service\AuthenticationService;
 use App\Service\UserService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -45,6 +45,33 @@ class UserController extends AbstractController
             $this->authenticationService->activateUser($token);
         }catch(UserAlreadyActiveException $e){
             return $this->json($e->getMessage(), $e->getCode());
+        }
+        return $this->json("Success");
+    }
+    #[Route('/api/user/get/{id}', name: 'user_get', methods: 'GET')]
+    public function fetchUser(int $id): JsonResponse
+    {
+        try {
+            $this->userService->get($id);
+        }catch(UserNotFoundException $e){
+            return $this->json($e->getMessage(), $e->getCode());
+        }
+        return $this->json("Success");
+    }
+    #[Route('/api/user/get/all', name: 'user_get_all', methods: 'GET')]
+    public function fetchUsers(): JsonResponse
+    {
+        return $this->json($this->userService->getAll());
+    }
+    #[Route('/api/user/update', name: 'user_update', methods: 'POST')]
+    public function updateUserData(Request $request)
+    {
+        try{
+            $this->userService->update($request->request->get("id"), $request->request->all());
+        }catch(UserNotFoundException $e){
+            return $this->json($e->getMessage(), $e->getCode());
+        }catch(LoginFailedException $e) {
+            return $this->json($e->getMessage());
         }
         return $this->json("Success");
     }
