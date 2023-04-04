@@ -32,11 +32,9 @@ class RegisterController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
 
             $user = $form->getData();
-            try{
-                $this->us->add($user);
-            }catch(ValidatorException $e){
-                return $this->json($e->getMessage(), $e->getCode());
-            }
+
+            $this->us->add($user);
+
             return $this->json('Success');
         }
 

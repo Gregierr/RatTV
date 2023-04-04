@@ -31,6 +31,8 @@ class LoginController extends AbstractController
             $user = $form->getData();
             try {
                 $this->authenticationService->checkIfPasswordIsValid($user);
+
+                $this->authenticationService->generateUserToken($user->getLogin());
             } catch (LoginFailedException $e) {
                 return $this->json($e->getMessage(), RESPONSE::HTTP_FORBIDDEN);
             } catch (UserNotFoundException|UserNotActiveException $e) {
