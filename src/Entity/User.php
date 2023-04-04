@@ -3,6 +3,9 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -30,6 +33,23 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $activationToken = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Video::class, orphanRemoval: true)]
+    private Collection $videos;
+
+    #[ORM\ManyToOne(inversedBy: 'user')]
+    private ?Comment $comment = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $sessionToken = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $sessionTokenExpireDate = null;
+
+    public function __construct()
+    {
+        $this->videos = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -104,6 +124,72 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
     public function setActivationToken(?string $activationToken): self
     {
         $this->activationToken = $activationToken;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Video>
+     */
+    public function getVideos(): Collection
+    {
+        return $this->videos;
+    }
+
+    public function addVideo(Video $video): self
+    {
+        if (!$this->videos->contains($video)) {
+            $this->videos->add($video);
+            $video->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVideo(Video $video): self
+    {
+        if ($this->videos->removeElement($video)) {
+            // set the owning side to null (unless already changed)
+            if ($video->getUser() === $this) {
+                $video->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getComment(): ?Comment
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?Comment $comment): self
+    {
+        $this->comment = $comment;
+
+        return $this;
+    }
+
+    public function getSessionToken(): ?string
+    {
+        return $this->sessionToken;
+    }
+
+    public function setSessionToken(string $sessionToken): self
+    {
+        $this->sessionToken = $sessionToken;
+
+        return $this;
+    }
+
+    public function getSessionTokenExpireDate(): ?\DateTimeInterface
+    {
+        return $this->sessionTokenExpireDate;
+    }
+
+    public function setSessionTokenExpireDate(\DateTimeInterface $sessionTokenExpireDate): self
+    {
+        $this->sessionTokenExpireDate = $sessionTokenExpireDate;
 
         return $this;
     }
