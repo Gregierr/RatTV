@@ -38,7 +38,19 @@ class VideoRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+    public function findVideoByKeyword($keyword)
+    {
+        $qb = $this->createQueryBuilder('v');
 
+        $words = preg_split('/\s+/', $keyword, -1, PREG_SPLIT_NO_EMPTY);
+
+        foreach ($words as $index => $word) {
+            $qb->orWhere("v.title LIKE :word{$index}")
+                ->setParameter("word{$index}", "%{$word}%");
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 //    /**
 //     * @return Video[] Returns an array of Video objects
 //     */

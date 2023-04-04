@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Form\SearchType;
 use App\Service\VideoService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Finder\Exception\AccessDeniedException;
@@ -50,6 +51,26 @@ class VideoController extends AbstractController
         }
 
         return $this->render('video/upload.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+    #[Route('/search', name:'search_video')]
+    public function search(Request $request)
+    {
+        $form = $this->createForm(SearchType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $query = $form->getData()['query'];
+
+            $results = $this->videoService->getVideoByName($query);
+
+            return $this->render('search/results.html.twig', [
+                'results' => $results,
+            ]);
+        }
+
+        return $this->render('search/form.html.twig', [
             'form' => $form->createView(),
         ]);
     }

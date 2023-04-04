@@ -4,12 +4,14 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Entity\Video;
+use App\Repository\VideoRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Finder\Exception\AccessDeniedException;
 
 class VideoService
 {
-    public function __construct(private EntityManagerInterface $em)
+    public function __construct(private EntityManagerInterface $em,
+                                private VideoRepository $videoRepository)
     {
     }
     public function saveVideo($filename, $id, $title)
@@ -30,5 +32,9 @@ class VideoService
     public function getVideo(int $id)
     {
         return $this->em->getRepository(Video::class)->findOneBy(["id"=> $id]);
+    }
+    public function getVideoByName($keyword)
+    {
+        return $this->videoRepository->findVideoByKeyword($keyword);
     }
 }
