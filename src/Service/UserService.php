@@ -20,8 +20,12 @@ class UserService implements CrudInterface
 
     }
 
-    public function add(User $user): void
+    public function add(array $data): void
     {
+        $user = new User();
+        $user->setLogin($data['login']);
+        $user->setPassword($data['password']);
+        $user->setEmail($data['email']);
         $user = $this->setHashedPassword($user, $user->getPassword());
         $user->setIsActive(false);
         $user->setIsDeleted(false);

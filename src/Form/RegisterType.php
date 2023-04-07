@@ -61,10 +61,4 @@ class RegisterType extends AbstractType
             ->add('Register', SubmitType::class)
         ;
     }
-    public function configureOptions(OptionsResolver $resolver): void
-    {
-        $resolver->setDefaults([
-            'data_class' => User::class,
-        ]);
-    }
 }
