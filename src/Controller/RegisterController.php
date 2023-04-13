@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Exception\ExceptionInterface;
 
 class RegisterController extends AbstractController
 {
-    public function __construct(private UserService $us)
+    public function __construct(private UserService $userService)
     {
     }
 
@@ -25,7 +25,7 @@ class RegisterController extends AbstractController
     #[Route('/register', name: 'register')]
     public function register(Request $request): Response
     {
-        $user = new User();
+        $user = [];
         $form = $this->createForm(RegisterType::class, $user);
         $form->handleRequest($request);
 
@@ -33,7 +33,7 @@ class RegisterController extends AbstractController
 
             $user = $form->getData();
 
-            $this->us->add($user);
+            $this->userService->add($user);
 
             return $this->json('Success');
         }
