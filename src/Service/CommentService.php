@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Comment;
 use App\Entity\User;
+use App\Entity\Video;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\VarDumper\Cloner\Data;
 
@@ -20,11 +21,14 @@ public function add(array $data)
     $user = new User();
     $user = $this->em->getRepository(User::class)->findOneBy(['id' => $session->get("id")]);
 
+    $video = new Video();
+    $video = $this->em->getRepository(Video::class)->findOneBy(['videoName' => $data['videoName']]);
+
     $comment = new Comment();
     $comment->setText($data['text']);
     $comment->addUser($user);
     $comment->setUploadDate(new \DateTime('now'));
-    $comment->
+    $comment->setVideo($video);
 
     $this->em->persist($comment);
     $this->em->flush();

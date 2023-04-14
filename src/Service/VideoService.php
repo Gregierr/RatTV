@@ -29,9 +29,9 @@ class VideoService
         $this->em->persist($video);
         $this->em->flush();
     }
-    public function getVideo(int $id)
+    public function getVideo(string $videoName)
     {
-        return $this->em->getRepository(Video::class)->findOneBy(["id"=> $id]);
+        return $this->em->getRepository(Video::class)->findOneBy(["videoName"=> $videoName]);
     }
     public function getVideoByName($keyword)
     {
