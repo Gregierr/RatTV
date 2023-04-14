@@ -1,7 +1,9 @@
 {% for result in results %}
     <h1>{{ result.title }}</h1>
-    <video controls>
-        <source src="{{ asset('videos/' ~ result.videoName) }}" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+    <a href="{{ path('video_watch', {'videoName': result.videoName}) }}">
+        <video controls>
+            <source src="{{ asset('videos/' ~ result.videoName) }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </a>
 {% endfor %}

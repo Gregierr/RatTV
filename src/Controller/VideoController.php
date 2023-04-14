@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Form\CommentType;
 use App\Form\SearchType;
+use App\Service\CommentService;
 use App\Service\VideoService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Finder\Exception\AccessDeniedException;
@@ -17,7 +19,8 @@ use App\Form\VideoType;
 class VideoController extends AbstractController
 {
     public function __construct(private VideoService $videoService,
-                                private RequestStack $requestStack,)
+                                private RequestStack $requestStack,
+                                private CommentService $commentService,)
     {
     }
     #[Route('/video/upload', name:'video_upload')]
@@ -74,11 +77,31 @@ class VideoController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
-    #[Route('/video/{id}', name:'video_watch')]
-    public function watchVideo(int $id)
+    #[Route('/video/{videoName}', name:'video_watch')]
+    public function watchVideo(Request $request, string $videoName)
     {
+        $comment = [];
+
+        $form = $this->createForm(CommentType::class, $comment);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid())
+        {
+            $comment = $form->getData();
+
+            $session = $this->requestStack->getSession();
+            $comment['session'] = $session;
+            $comment['videoName'] = $videoName;
+
+            $this->commentService->add($comment);
+
+            return $this->redirectToRoute('video_watch', ['videoName' => $videoName]);
+        }
+
         return $this->render('video/watch.html.twig', [
-            'video' => $this->videoService->getVideo($id),
+            'video' => $this->videoService->getVideo($videoName),
+            'form' => $form->createView(),
         ]);
     }
 
