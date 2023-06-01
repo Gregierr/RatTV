@@ -7,42 +7,54 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface
 {
+    #[Groups("user")]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups("user")]
     #[ORM\Column(length: 32)]
     private ?string $login = null;
 
+    #[Groups("user")]
     #[ORM\Column(length: 255)]
     private ?string $password = null;
 
+    #[Groups("user")]
     #[ORM\Column(length: 32)]
     private ?string $email = null;
 
+    #[Groups("user")]
     #[ORM\Column]
     private ?bool $isActive = null;
 
+    #[Groups("user")]
     #[ORM\Column]
     private ?bool $isDeleted = null;
 
+    #[Groups("user")]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $activationToken = null;
 
+    #[Groups("user")]
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Video::class, orphanRemoval: true)]
     private Collection $videos;
 
+    #[Groups("user")]
     #[ORM\ManyToOne(inversedBy: 'user')]
     private ?Comment $comment = null;
 
+    #[Groups("user")]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $sessionToken = null;
 
+    #[Groups("user")]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $sessionTokenExpireDate = null;
 
