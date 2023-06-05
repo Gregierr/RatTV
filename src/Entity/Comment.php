@@ -28,6 +28,9 @@ class Comment
     #[ORM\ManyToOne(inversedBy: 'comment')]
     private ?Video $video = null;
 
+    #[ORM\Column]
+    private ?bool $isDeleted = null;
+
     public function __construct()
     {
         $this->user = new ArrayCollection();
@@ -100,6 +103,18 @@ class Comment
     public function setVideo(?Video $video): self
     {
         $this->video = $video;
+
+        return $this;
+    }
+
+    public function isIsDeleted(): ?bool
+    {
+        return $this->isDeleted;
+    }
+
+    public function setIsDeleted(bool $isDeleted): self
+    {
+        $this->isDeleted = $isDeleted;
 
         return $this;
     }

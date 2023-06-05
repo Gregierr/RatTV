@@ -98,11 +98,15 @@ class VideoController extends AbstractController
 
             return $this->redirectToRoute('video_watch', ['videoName' => $videoName]);
         }
-
+        dd($this->getVideoComments($videoName));
         return $this->render('video/watch.html.twig', [
             'video' => $this->videoService->getVideo($videoName),
             'form' => $form->createView(),
+            'comments' => $this->getVideoComments($videoName)
         ]);
     }
-
+    public function getVideoComments(string $videoName)
+    {
+        return $this->json($this->commentService->getAll($videoName));
+    }
 }

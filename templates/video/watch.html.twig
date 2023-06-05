@@ -6,4 +6,9 @@
         Your browser does not support the video tag.
     </video>
     {{ form(form) }}
+    <ul>
+        {% for comment in comments %}
+            <li>{{ comment.User }} - {{ comment.Text }} - {{ comment.Date }}</li>>
+        {% endfor %}
+    </ul>
 {% endblock %}

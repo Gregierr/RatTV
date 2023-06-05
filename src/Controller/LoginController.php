@@ -38,7 +38,7 @@ class LoginController extends AbstractController
             } catch (UserNotFoundException|UserNotActiveException $e) {
                 return $this->json($e->getMessage(), $e->getCode());
             }
-            return $this->json("success");
+            return $this->redirectToRoute('search_video');
         }
 
         return $this->render('login.html.twig', [
