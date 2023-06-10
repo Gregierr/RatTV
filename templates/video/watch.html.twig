@@ -8,7 +8,7 @@
     {{ form(form) }}
     <ul>
         {% for comment in comments %}
-            <li>{{ comment.User }} - {{ comment.Text }} - {{ comment.Date }}</li>>
+            <li>{{ comment.user.login }} - {{ comment.text }} - {{ comment.uploadDate }}</li>
         {% endfor %}
     </ul>
 {% endblock %}

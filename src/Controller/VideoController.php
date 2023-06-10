@@ -98,7 +98,8 @@ class VideoController extends AbstractController
 
             return $this->redirectToRoute('video_watch', ['videoName' => $videoName]);
         }
-        dd($this->getVideoComments($videoName));
+
+
         return $this->render('video/watch.html.twig', [
             'video' => $this->videoService->getVideo($videoName),
             'form' => $form->createView(),
@@ -107,6 +108,9 @@ class VideoController extends AbstractController
     }
     public function getVideoComments(string $videoName)
     {
-        return $this->json($this->commentService->getAll($videoName));
+        $commentsJson = $this->commentService->getAll($videoName);
+        $comments = json_decode($commentsJson, true);
+
+        return $comments;
     }
 }
