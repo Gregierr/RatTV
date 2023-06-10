@@ -18,7 +18,7 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups("user")]
+    #[Groups(["user", "comment"])]
     #[ORM\Column(length: 32)]
     private ?string $login = null;
 
@@ -46,9 +46,8 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Video::class, orphanRemoval: true)]
     private Collection $videos;
 
-    #[Groups("user")]
-    #[ORM\ManyToOne(inversedBy: 'user')]
-    private ?Comment $comment = null;
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: Comment::class)]
+    private Collection $comments;
 
     #[Groups("user")]
     #[ORM\Column(length: 255, nullable: true)]
@@ -169,15 +168,30 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
 
         return $this;
     }
-
-    public function getComment(): ?Comment
+    /**
+     * @return Collection<int, Comment>
+     */
+    public function getComments(): Collection
     {
-        return $this->comment;
+        return $this->comments;
     }
-
-    public function setComment(?Comment $comment): self
+    public function addComment(Comment $comment): self
     {
-        $this->comment = $comment;
+        if(!$this->comments->contains($comment)){
+            $this->comments->add($comment);
+            $comment->setUser($this);
+        }
+
+        return $this;
+    }
+    public function removeComment(Comment $comment):self
+    {
+        if($this->comments->removeElement($comment)) {
+            //set the owning side to null (unless already changed)
+            if ($comment->getUser() === $this) {
+                $comment->setUser(null);
+            }
+        }
 
         return $this;
     }

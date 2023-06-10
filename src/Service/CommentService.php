@@ -6,11 +6,14 @@ use App\Entity\Comment;
 use App\Entity\User;
 use App\Entity\Video;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\VarDumper\Cloner\Data;
 
 class CommentService implements CrudInterface
 {
     public function __construct(private EntityManagerInterface $em,
+                                private SerializerInterface $serializer,
     )
     {
     }
@@ -27,7 +30,7 @@ class CommentService implements CrudInterface
 
         $comment = new Comment();
         $comment->setText($data['text']);
-        $comment->addUser($user);
+        $comment->setUser($user);
         $comment->setUploadDate(new \DateTime('now'));
         $comment->setVideo($video);
         $comment->setIsDeleted(false);
@@ -58,19 +61,11 @@ class CommentService implements CrudInterface
 
         $videoId = $video->getId();
 
-        $allComments = [];
+
         /** @var Comment[] $comments */
         $comments = $this->em->getRepository(Comment::class)->findBy(["video" => $videoId, "isDeleted" => false]);
 
-        foreach($comments as $comment)
-        {
-            $allComments[] = [
-                "User" => $comment->getUser(),
-                "Text" => $comment->getText(),
-                "Date" => $comment->getUploadDate()
-            ];
-        }
-        dd($allComments);
+        $allComments = $this->serializer->serialize($comments, 'json', ['groups' => 'comment']);
         return $allComments;
     }
 }

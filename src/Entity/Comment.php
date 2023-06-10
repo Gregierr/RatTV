@@ -7,33 +7,41 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
 class Comment
 {
+    #[Groups("comment")]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups("comment")]
     #[ORM\Column(length: 255)]
     private ?string $text = null;
 
+    #[Groups("comment")]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $uploadDate = null;
 
-    #[ORM\OneToMany(mappedBy: 'comment', targetEntity: User::class)]
-    private Collection $user;
+    #[Groups("comment")]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'comment')]
+    #[ORM\JoinColumn(name: "user_id", referencedColumnName: "id")]
+    private ?User $user = null;
 
+    #[Groups("comment")]
     #[ORM\ManyToOne(inversedBy: 'comment')]
     private ?Video $video = null;
 
+    #[Groups("comment")]
     #[ORM\Column]
     private ?bool $isDeleted = null;
 
     public function __construct()
     {
-        $this->user = new ArrayCollection();
+
     }
 
     public function getId(): ?int
@@ -65,32 +73,13 @@ class Comment
         return $this;
     }
 
-    /**
-     * @return Collection<int, User>
-     */
-    public function getUser(): Collection
+    public function getUser(): ?User
     {
         return $this->user;
     }
-
-    public function addUser(User $user): self
+    public function setUser(?User $user): self
     {
-        if (!$this->user->contains($user)) {
-            $this->user->add($user);
-            $user->setComment($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUser(User $user): self
-    {
-        if ($this->user->removeElement($user)) {
-            // set the owning side to null (unless already changed)
-            if ($user->getComment() === $this) {
-                $user->setComment(null);
-            }
-        }
+        $this->user = $user;
 
         return $this;
     }
