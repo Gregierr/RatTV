@@ -34,9 +34,16 @@ class Video
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
+    #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'videos')]
+    private Collection $tags;
+
+    #[ORM\Column]
+    private ?int $views = 0;
+
     public function __construct()
     {
         $this->comment = new ArrayCollection();
+        $this->tags = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -118,6 +125,45 @@ class Video
     public function setTitle(string $title): self
     {
         $this->title = $title;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Tag>
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
+
+    public function addTag(Tag $tag): self
+    {
+        if (!$this->tags->contains($tag)) {
+            $this->tags->add($tag);
+            $tag->addVideo($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTag(Tag $tag): self
+    {
+        if ($this->tags->removeElement($tag)) {
+            $tag->removeVideo($this);
+        }
+
+        return $this;
+    }
+
+    public function getViews(): ?int
+    {
+        return $this->views;
+    }
+
+    public function setViews(int $views): self
+    {
+        $this->views = $views;
 
         return $this;
     }
