@@ -56,7 +56,7 @@ class UserService implements CrudInterface
      * @throws UserNotFoundException
      * @throws LoginFailedException
      */
-    public function update(int $id, array $data): void
+    public function update(int $id, array $data)
     {
         $user = $this->em->getRepository(User::class)->findOneBy(["id" => $id]);
 
@@ -77,9 +77,8 @@ class UserService implements CrudInterface
     /**
      * @throws UserNotFoundException
      */
-    public function get(int $id): User
+    public function get(int $id)
     {
-        /* @var User $user */
         $user = $this->em->getRepository(User::class)
             ->findOneBy(["id" => $id]);
 
@@ -93,7 +92,7 @@ class UserService implements CrudInterface
     {
         $allUsers = [];
         /** @var User[] $users */
-        $users = $this->em->getRepository(User::class)->findBy(["isDeleted" => false]);
+        $users = $this->em->getRepository(User::class)->findBy(["isDeleted" => "false"]);
 
         foreach($users as $user)
         {

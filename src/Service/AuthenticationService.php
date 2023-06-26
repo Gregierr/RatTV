@@ -20,12 +20,10 @@ use Symfony\Component\Finder\Exception\AccessDeniedException;
 
 class AuthenticationService
 {
-    public function __construct(private EntityManagerInterface      $em,
-                                private UserPasswordHasherInterface $passwordHasher,
-                                private RequestStack                $requestStack,
-    )
-    {
-    }
+    public function __construct(private  EntityManagerInterface      $em,
+                                private  UserPasswordHasherInterface $passwordHasher,
+                                private RequestStack $requestStack,
+    ){}
 
     /**
      * @throws UserNotFoundException
@@ -40,10 +38,10 @@ class AuthenticationService
         /** @var User $user */
         $user = $this->em->getRepository(User::class)->findOneBy(["login" => $login]);
 
-        if (!$user)
+        if(!$user)
             throw new LoginFailedException();
 
-        if (!$user->isActive())
+        if(!$user->isActive())
             throw new UserNotActiveException();
 
         $this->passwordHasher->isPasswordValid($user, $password) ?: throw new LoginFailedException();
@@ -51,6 +49,7 @@ class AuthenticationService
 
     /**
      * @throws UserNotFoundException
+     * @throws TransportExceptionInterface
      */
     public function getActivationLink(int $id): void
     {
@@ -61,7 +60,7 @@ class AuthenticationService
             'isDeleted' => false
         ]);
 
-        if (!$user)
+        if(!$user)
             throw new UserNotFoundException($id);
 
         $token = random_int(PHP_INT_MIN, PHP_INT_MAX);
@@ -75,6 +74,7 @@ class AuthenticationService
 
     /**
      * @throws UserAlreadyActiveException
+     * @throws UserNotFoundException
      */
     public function activateUser($token): void
     {
@@ -84,10 +84,10 @@ class AuthenticationService
             "isDeleted" => false
         ]);
 
-        if (!$user)
+        if(!$user)
             throw new UserAlreadyActiveException();
 
-        if ($user->getActivationToken() == $token) {
+        if($user->getActivationToken() == $token){
             $user->setIsActive(true);
             $user->setActivationToken(null);
         }
@@ -120,7 +120,6 @@ class AuthenticationService
 
         $this->em->flush();
     }
-
     public function authorize()
     {
         $session = $this->requestStack->getSession();
@@ -131,16 +130,15 @@ class AuthenticationService
         /** @var User $user */
         $user = $this->em->getRepository(User::class)->findOneBy(["id" => $sesId, "isDeleted" => false]);
 
-        if ($sesToken != $user->getSessionToken() ||
+        if($sesToken != $user->getSessionToken() ||
             $user->getSessionTokenExpireDate() < new \DateTime("now")
         )
             throw new AccessDeniedException();
     }
-
     public function isAuthorized(int $id)
     {
         $session = $this->requestStack->getSession();
-        if ($id != $session->get("id"))
+        if($id != $session->get("id"))
             throw new AccessDeniedException();
     }
 }
