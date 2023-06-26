@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Exception\VideoNotFoundException;
 use App\Form\CommentType;
 use App\Form\SearchType;
 use App\Service\CommentService;
@@ -18,12 +19,13 @@ use App\Form\VideoType;
 
 class VideoController extends AbstractController
 {
-    public function __construct(private VideoService $videoService,
-                                private RequestStack $requestStack,
+    public function __construct(private VideoService   $videoService,
+                                private RequestStack   $requestStack,
                                 private CommentService $commentService,)
     {
     }
-    #[Route('/video/upload', name:'video_upload')]
+
+    #[Route('/video/upload', name: 'video_upload')]
     public function uploadVideo(Request $request): Response
     {
         $form = $this->createForm(VideoType::class);
@@ -34,7 +36,7 @@ class VideoController extends AbstractController
             /** @var UploadedFile $videoFile */
             $videoFile = $form->get('file')->getData();
 
-            $newFilename = uniqid().'.'.$videoFile->guessExtension();
+            $newFilename = uniqid() . '.' . $videoFile->guessExtension();
 
             $videoFile->move(
                 $this->getParameter('video_directory'),
@@ -43,8 +45,12 @@ class VideoController extends AbstractController
             $session = $this->requestStack->getSession();
 
             try {
-                $this->videoService->saveVideo($newFilename, $session->get("id"), $form->get('title')->getData());
-            }catch(AccessDeniedException $e){
+                $this->videoService->saveVideo(
+                    $newFilename,
+                    $session->get("id"),
+                    $form->getData()
+                );
+            } catch (AccessDeniedException $e) {
                 return $this->json($e->getMessage(), RESPONSE::HTTP_FORBIDDEN);
             }
             $filesystem = new Filesystem();
@@ -57,7 +63,8 @@ class VideoController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
-    #[Route('/search', name:'search_video')]
+
+    #[Route('/search', name: 'search_video')]
     public function search(Request $request)
     {
         $form = $this->createForm(SearchType::class);
@@ -77,17 +84,19 @@ class VideoController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
-    #[Route('/video/{videoName}', name:'video_watch')]
+
+    #[Route('/video/{videoName}', name: 'video_watch')]
     public function watchVideo(Request $request, string $videoName)
     {
+        $this->addView($videoName);
+
         $comment = [];
 
         $form = $this->createForm(CommentType::class, $comment);
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid())
-        {
+        if ($form->isSubmitted() && $form->isValid()) {
             $comment = $form->getData();
 
             $session = $this->requestStack->getSession();
@@ -106,11 +115,17 @@ class VideoController extends AbstractController
             'comments' => $this->getVideoComments($videoName)
         ]);
     }
+
     public function getVideoComments(string $videoName)
     {
         $commentsJson = $this->commentService->getAll($videoName);
         $comments = json_decode($commentsJson, true);
 
         return $comments;
+    }
+
+    public function addView(string $videoName): void
+    {
+        $this->videoService->addViewToVideo($videoName);
     }
 }

@@ -57,9 +57,13 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $sessionTokenExpireDate = null;
 
+    #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'users')]
+    private Collection $tags;
+
     public function __construct()
     {
         $this->videos = new ArrayCollection();
+        $this->tags = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -216,6 +220,33 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
     public function setSessionTokenExpireDate(\DateTimeInterface $sessionTokenExpireDate): self
     {
         $this->sessionTokenExpireDate = $sessionTokenExpireDate;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Tag>
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
+
+    public function addTag(Tag $tag): self
+    {
+        if (!$this->tags->contains($tag)) {
+            $this->tags->add($tag);
+            $tag->addUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTag(Tag $tag): self
+    {
+        if ($this->tags->removeElement($tag)) {
+            $tag->removeUser($this);
+        }
 
         return $this;
     }

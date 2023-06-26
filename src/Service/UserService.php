@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Exception\LoginFailedException;
-use App\Exception\ValidatorException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -56,7 +55,7 @@ class UserService implements CrudInterface
      * @throws UserNotFoundException
      * @throws LoginFailedException
      */
-    public function update(int $id, array $data)
+    public function update(int $id, array $data): void
     {
         $user = $this->em->getRepository(User::class)->findOneBy(["id" => $id]);
 
@@ -77,8 +76,9 @@ class UserService implements CrudInterface
     /**
      * @throws UserNotFoundException
      */
-    public function get(int $id)
+    public function get(int $id): User
     {
+        /* @var User $user */
         $user = $this->em->getRepository(User::class)
             ->findOneBy(["id" => $id]);
 
@@ -92,7 +92,7 @@ class UserService implements CrudInterface
     {
         $allUsers = [];
         /** @var User[] $users */
-        $users = $this->em->getRepository(User::class)->findBy(["isDeleted" => "false"]);
+        $users = $this->em->getRepository(User::class)->findBy(["isDeleted" => false]);
 
         foreach($users as $user)
         {
