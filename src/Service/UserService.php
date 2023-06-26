@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Exception\LoginFailedException;
+use App\Exception\ValidatorException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
