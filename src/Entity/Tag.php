@@ -21,13 +21,13 @@ class Tag
     #[ORM\ManyToMany(targetEntity: Video::class, inversedBy: 'tags')]
     private Collection $videos;
 
-    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'tags')]
-    private Collection $users;
+    #[ORM\OneToMany(mappedBy: 'tag', targetEntity: UserTag::class)]
+    private Collection $userTags;
 
     public function __construct()
     {
         $this->videos = new ArrayCollection();
-        $this->users = new ArrayCollection();
+        $this->userTags = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -72,25 +72,31 @@ class Tag
     }
 
     /**
-     * @return Collection<int, User>
+     * @return Collection<int, UserTag>
      */
-    public function getUsers(): Collection
+    public function getUserTags(): Collection
     {
-        return $this->users;
+        return $this->userTags;
     }
 
-    public function addUser(User $user): self
+    public function addUserTag(UserTag $userTag): self
     {
-        if (!$this->users->contains($user)) {
-            $this->users->add($user);
+        if (!$this->userTags->contains($userTag)) {
+            $this->userTags->add($userTag);
+            $userTag->setTag($this);
         }
 
         return $this;
     }
 
-    public function removeUser(User $user): self
+    public function removeUserTag(UserTag $userTag): self
     {
-        $this->users->removeElement($user);
+        if ($this->userTags->removeElement($userTag)) {
+            // set the owning side to null (unless already changed)
+            if ($userTag->getTag() === $this) {
+                $userTag->setTag(null);
+            }
+        }
 
         return $this;
     }

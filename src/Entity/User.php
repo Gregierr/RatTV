@@ -57,13 +57,13 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $sessionTokenExpireDate = null;
 
-    #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'users')]
-    private Collection $tags;
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserTag::class)]
+    private Collection $userTags;
 
     public function __construct()
     {
         $this->videos = new ArrayCollection();
-        $this->tags = new ArrayCollection();
+        $this->userTags = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -225,27 +225,30 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
     }
 
     /**
-     * @return Collection<int, Tag>
+     * @return Collection<int, UserTag>
      */
-    public function getTags(): Collection
+    public function getUserTags(): Collection
     {
-        return $this->tags;
+        return $this->userTags;
     }
 
-    public function addTag(Tag $tag): self
+    public function addUserTag(UserTag $userTag): self
     {
-        if (!$this->tags->contains($tag)) {
-            $this->tags->add($tag);
-            $tag->addUser($this);
+        if (!$this->userTags->contains($userTag)) {
+            $this->userTags->add($userTag);
+            $userTag->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeTag(Tag $tag): self
+    public function removeUserTag(UserTag $userTag): self
     {
-        if ($this->tags->removeElement($tag)) {
-            $tag->removeUser($this);
+        if ($this->userTags->removeElement($userTag)) {
+            // set the owning side to null (unless already changed)
+            if ($userTag->getUser() === $this) {
+                $userTag->setUser(null);
+            }
         }
 
         return $this;

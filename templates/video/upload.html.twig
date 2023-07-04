@@ -1,8 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-{{ form(form) }}
+{{ form_start(form) }}
+{{ form_row(form.title) }}
+{{ form_row(form.file) }}
+<div id="tag-container">
+    {{ form_row(form.tags) }}
+</div>
+<button type="button" id="add-tag-btn" {{ form.tags|length >= 3 ? 'disabled' }}>Add Tag</button>
+{{ form_end(form) }}
+<script>
+    let tagCount = {{ form.tags|length }};
+    const maxTags = 3;
+
+    $("#add-tag-btn").click(function() {
+        if (tagCount < maxTags) {
+            let newTag = $($('#{{form.tags.vars.id}}').data('prototype')
+                .replace(/__name__/g, tagCount));
+            $('#tag-container').append(newTag);
+            tagCount++;
+        }
+        if (tagCount >= maxTags) {
+            $('#add-tag-btn').prop('disabled', true);
+        }
+    });
+</script>
 </body>
 </html>
