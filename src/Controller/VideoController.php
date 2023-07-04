@@ -90,16 +90,17 @@ class VideoController extends AbstractController
     {
         $this->addView($videoName);
 
+        $session = $this->requestStack->getSession();
+
+        $this->videoService->addWatchedTagsToUser($session, $videoName);
+
         $comment = [];
-
         $form = $this->createForm(CommentType::class, $comment);
-
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $comment = $form->getData();
 
-            $session = $this->requestStack->getSession();
             $comment['session'] = $session;
             $comment['videoName'] = $videoName;
 
@@ -116,7 +117,7 @@ class VideoController extends AbstractController
         ]);
     }
 
-    public function getVideoComments(string $videoName)
+    public function getVideoComments(string $videoName): ?Array
     {
         $commentsJson = $this->commentService->getAll($videoName);
         $comments = json_decode($commentsJson, true);
