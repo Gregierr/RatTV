@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Tag;
 use App\Entity\Video;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -38,6 +39,7 @@ class VideoRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
     public function findVideoByKeyword($keyword)
     {
         $qb = $this->createQueryBuilder('v');
@@ -51,28 +53,16 @@ class VideoRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
-//    /**
-//     * @return Video[] Returns an array of Video objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('v')
-//            ->andWhere('v.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('v.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
 
-//    public function findOneBySomeField($value): ?Video
-//    {
-//        return $this->createQueryBuilder('v')
-//            ->andWhere('v.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function getVideosWithTag(Tag $tag): array
+    {
+        return $this->createQueryBuilder('v')
+            ->join('v.tags', 't')
+            ->andWhere('t.id = :tagId')
+            ->setParameter('tagId', $tag->getId())
+            ->orderBy('v.views', 'DESC')
+            ->setMaxResults(3)
+            ->getQuery()
+            ->getResult();
+    }
 }

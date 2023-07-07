@@ -2,8 +2,11 @@
 
 namespace App\Repository;
 
+use App\Entity\Tag;
 use App\Entity\UserTag;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -39,28 +42,22 @@ class UserTagRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return UserTag[] Returns an array of UserTag objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('u.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function getMostViewedTagForUser($user): ?Tag
+    {
+        $tagId = $this->createQueryBuilder('ut')
+            ->select('IDENTITY(ut.tag) as tagId, COUNT(ut.tag) as HIDDEN tagCount')
+            ->andWhere('ut.user = :user')
+            ->setParameter('user', $user)
+            ->groupBy('tagId')
+            ->orderBy('tagCount', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getSingleScalarResult();
 
-//    public function findOneBySomeField($value): ?UserTag
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        return $this->getEntityManager()->getRepository(Tag::class)->find($tagId);
+    }
 }

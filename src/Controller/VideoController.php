@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Exception\VideoNotFoundException;
 use App\Form\CommentType;
 use App\Form\SearchType;
 use App\Service\CommentService;
@@ -65,7 +64,7 @@ class VideoController extends AbstractController
     }
 
     #[Route('/search', name: 'search_video')]
-    public function search(Request $request)
+    public function search(Request $request): Response
     {
         $form = $this->createForm(SearchType::class);
         $form->handleRequest($request);
@@ -86,9 +85,9 @@ class VideoController extends AbstractController
     }
 
     #[Route('/video/{videoName}', name: 'video_watch')]
-    public function watchVideo(Request $request, string $videoName)
+    public function watchVideo(Request $request, string $videoName): \Symfony\Component\HttpFoundation\RedirectResponse|Response
     {
-        $this->addView($videoName);
+        $this->videoService->addView($videoName);
 
         $session = $this->requestStack->getSession();
 
@@ -113,20 +112,7 @@ class VideoController extends AbstractController
         return $this->render('video/watch.html.twig', [
             'video' => $this->videoService->getVideo($videoName),
             'form' => $form->createView(),
-            'comments' => $this->getVideoComments($videoName)
+            'comments' => $this->videoService->getVideoComments($videoName)
         ]);
-    }
-
-    public function getVideoComments(string $videoName): ?Array
-    {
-        $commentsJson = $this->commentService->getAll($videoName);
-        $comments = json_decode($commentsJson, true);
-
-        return $comments;
-    }
-
-    public function addView(string $videoName): void
-    {
-        $this->videoService->addViewToVideo($videoName);
     }
 }
