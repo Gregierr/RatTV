@@ -6,7 +6,6 @@ use App\Entity\Tag;
 use App\Entity\User;
 use App\Entity\UserTag;
 use App\Entity\Video;
-use App\Exception\VideoNotFoundException;
 use App\Repository\VideoRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Finder\Exception\AccessDeniedException;
@@ -14,7 +13,8 @@ use Symfony\Component\Finder\Exception\AccessDeniedException;
 class VideoService
 {
     public function __construct(private EntityManagerInterface $em,
-                                private VideoRepository        $videoRepository)
+                                private VideoRepository        $videoRepository,
+                                private CommentService         $commentService)
     {
     }
 
@@ -77,8 +77,7 @@ class VideoService
 
         $tags = $video->getTags();
 
-        foreach($tags as $tag)
-        {
+        foreach ($tags as $tag) {
             $userTag = $this->em->getRepository(UserTag::class)->findOneBy(['user' => $user, 'tag' => $tag]);
 
             if ($userTag === null) {
@@ -97,5 +96,38 @@ class VideoService
         }
 
         $this->em->flush();
+    }
+
+    public function getRecommendedVideosByTagsViews($session): array
+    {
+        /* @var User $user */
+        $user = $this->em->getRepository(User::class)->findOneBy(['id' => $session->get("id")]);
+
+        $mostViewedTag = $this->em->getRepository(UserTag::class)->getMostViewedTagForUser($user);
+
+        if ($mostViewedTag === null) {
+            return $this->em->getRepository(Video::class)->findBy([], ['views' => 'DESC'], 3);
+        }
+
+        $videosWithTag = $this->em->getRepository(Video::class)->getVideosWithTag($mostViewedTag);
+
+        usort($videosWithTag, function (Video $a, Video $b) {
+            return $b->getViews() - $a->getViews();
+        });
+
+        return array_slice($videosWithTag, 0, 3);
+    }
+
+    public function getVideoComments(string $videoName): ?array
+    {
+        $commentsJson = $this->commentService->getAll($videoName);
+        $comments = json_decode($commentsJson, true);
+
+        return $comments;
+    }
+
+    public function addView(string $videoName): void
+    {
+        $this->addViewToVideo($videoName);
     }
 }

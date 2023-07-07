@@ -1,7 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-</head>
-<body>
-</body>
-</html>
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Recommended Videos</h1>
+
+    {% if recommendedVideos|length > 0 %}
+        {% for video in recommendedVideos %}
+            <div>
+                <h2>{{ video.title }}</h2>
+                <p>Views: {{ video.views }}</p>
+                <a href="{{ path('video_watch', {'videoName': video.videoName}) }}">
+                    <video controls>
+                        <source src="{{ asset('videos/' ~ video.videoName) }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </a>
+                <hr>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Sorry, we couldn't find any recommended videos for you.</p>
+    {% endif %}
+{% endblock %}
